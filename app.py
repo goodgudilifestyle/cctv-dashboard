@@ -103,22 +103,23 @@ st.markdown(
         opacity: 1 !important;
       }}
 
-      /* -------- DROPDOWN POPUP -------- */
+      /* -------- DROPDOWN POPUP FIX -------- */
       div[role="listbox"] {{
           background: #020817 !important;
           border: 1px solid #cbd5e1 !important;
       }}
 
       div[role="option"] {{
-          background: #020817
-          !important;
-          color: #0b1f3b !important;
-          opacity: 1 !important;
+          background: #020817 !important;
+          color: #ffffff !important;
       }}
 
-      div[role="option"] * {{
-          color: #0b1f3b !important;
-          -webkit-text-fill-color: #0b1f3b !important;
+      div[role="option"] *,
+      div[role="option"] span,
+      div[role="option"] div {{
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+          fill: #ffffff !important;
           opacity: 1 !important;
       }}
 
@@ -129,19 +130,14 @@ st.markdown(
       div[role="option"][aria-selected="true"] {{
           background: #334155 !important;
       }}
-      
-      div[role="option"][aria-selected="true"] * {{
-        color: #0b1f3b !important;
-        -webkit-text-fill-color: #0b1f3b !important;
-      }}
 
       div[data-baseweb="menu"] {{
-        background: #ffffff !important;
+        background: #020817 !important;
       }}
 
       div[data-baseweb="menu"] * {{
-        color: #0b1f3b !important;
-        -webkit-text-fill-color: #0b1f3b !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
         opacity: 1 !important;
       }}
 
@@ -394,13 +390,6 @@ extra_cols = [c for c in latest.columns if c not in show_cols]
 # keep extra cols excluded for display to avoid disturbing current table too much
 
 def build_whatsapp_text(row):
-    """
-    Build text dynamically:
-    - keeps main order
-    - includes Staff on Floor Ratio after Customers
-    - includes any other non-empty fields after main fields
-    - bold only Staff on Floor Ratio for WhatsApp
-    """
     parts = []
 
     ts_val = fmt_timestamp(row.get("Timestamp", ""))
@@ -411,6 +400,20 @@ def build_whatsapp_text(row):
     boxes_val = fmt_value(row.get("No. of Stock Boxes on Floor", ""))
     doing_val = fmt_value(row.get("Staff Doing", ""))
     comment_val = fmt_value(row.get("Comment", ""))
+    user_val = fmt_value(row.get("User", ""))
+    total_logged_val = fmt_value(row.get("Total Staff Logged In", ""))
+
+    # calculate staff not on floor
+    staff_not_on_floor = ""
+    try:
+        if total_logged_val != "" and staff_val != "":
+            total_logged_num = float(total_logged_val)
+            staff_num = float(staff_val)
+            diff = int(total_logged_num - staff_num)
+            if diff >= 0:
+                staff_not_on_floor = str(diff)
+    except Exception:
+        staff_not_on_floor = ""
 
     if ts_val:
         parts.append(f"On {ts_val}")
@@ -428,8 +431,13 @@ def build_whatsapp_text(row):
         parts.append(f"Doing: {doing_val}")
     if comment_val:
         parts.append(f"Comment: {comment_val}")
+    if user_val:
+        parts.append(f"User: {user_val}")
+    if total_logged_val:
+        parts.append(f"Total Staff Logged In: {total_logged_val}")
+    if staff_not_on_floor != "":
+        parts.append(f"*Staff not on Floor: {staff_not_on_floor}*")
 
-    # append any other non-empty row values not already covered
     covered_cols = {
         "Timestamp",
         "Select Store",
@@ -438,30 +446,20 @@ def build_whatsapp_text(row):
         "No. of Stock Boxes on Floor",
         "Staff Doing",
         "Comment",
+        "User",
+        "Total Staff Logged In",
     }
     if ratio_col:
         covered_cols.add(ratio_col)
-
-    friendly_names = {
-        "User": "User",
-        "File Photo": "File Photo",
-        "Total Staff Logged In": "Total Staff Logged In",
-        "No. of Staff Present": "Staff",
-        "No. of Customer Present": "Customers",
-        "No. of Stock Boxes on Floor": "Boxes",
-        "Select Store": "Store",
-    }
 
     for col in row.index:
         if col in covered_cols:
             continue
         val = fmt_value(row.get(col, ""))
         if val != "":
-            label = friendly_names.get(col, col)
-            parts.append(f"{label}: {val}")
+            parts.append(f"{col}: {val}")
 
     return " | ".join(parts)
-
 
 def render_latest_table_with_copy(df_table, visible_cols):
     if df_table.empty:

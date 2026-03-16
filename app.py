@@ -8,8 +8,8 @@ CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcso-sK4gPLoFOWaN4Pk
 
 st.set_page_config(page_title="CCTV Live Tracking", layout="wide")
 
-# ---------- UI (Navy on White) ----------
 NAVY = "#0b1f3b"
+
 st.markdown(
     f"""
     <style>
@@ -17,26 +17,39 @@ st.markdown(
         background: white;
         color: {NAVY};
       }}
+
       h1, h2, h3, h4, h5, h6, p, div, span, label {{
         color: {NAVY} !important;
       }}
-      /* Make sidebar white too */
+
       section[data-testid="stSidebar"] {{
         background: white;
       }}
-      /* Buttons */
+
       .stButton>button {{
         border: 1px solid {NAVY};
         color: {NAVY};
         background: white;
         border-radius: 10px;
       }}
+
       .stButton>button:hover {{
         opacity: 0.9;
       }}
-      /* Dataframe header color */
+
       div[data-testid="stDataFrame"] * {{
         color: {NAVY} !important;
+      }}
+
+      /* Expander title white + bold */
+      .streamlit-expanderHeader {{
+        color: white !important;
+        font-weight: 700 !important;
+      }}
+
+      details summary {{
+        color: white !important;
+        font-weight: 700 !important;
       }}
     </style>
     """,
@@ -47,11 +60,9 @@ st.markdown(
 def load_data():
     df = pd.read_csv(CSV_URL)
 
-    # Parse timestamp
     if "Timestamp" in df.columns:
         df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors="coerce", dayfirst=True)
 
-    # Numeric columns cleanup
     numeric_cols = [
         "No. of Staff Present",
         "No. of Customer Present",
@@ -68,9 +79,6 @@ df = load_data()
 
 st.title("CCTV Live Tracking — Dashboard")
 
-# Placeholder so "Show Table View" can appear immediately after title
-table_placeholder = st.empty()
-
 # ---------- Filters ----------
 c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.2, 1.6])
 
@@ -81,17 +89,11 @@ with c1:
     store_sel = st.multiselect("Store", stores, default=list(stores)[:1] if len(stores) else [])
 with c2:
     user_sel = st.multiselect("User", users, default=[])
-
-# Date range filter
-min_date = None
-max_date = None
-if "Timestamp" in df.columns and df["Timestamp"].notna().any():
-    min_date = df["Timestamp"].min().date()
-    max_date = df["Timestamp"].max().date()
-
 with c3:
+    min_date = df["Timestamp"].min().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
     start_date = st.date_input("Start date", value=min_date if min_date else None)
 with c4:
+    max_date = df["Timestamp"].max().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
     end_date = st.date_input("End date", value=max_date if max_date else None)
 
 f = df.copy()
@@ -103,7 +105,6 @@ if user_sel and "User" in f.columns:
     f = f[f["User"].isin(user_sel)]
 
 if "Timestamp" in f.columns and f["Timestamp"].notna().any() and start_date and end_date:
-    # include full end date
     start_ts = pd.Timestamp(start_date)
     end_ts = pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
     f = f[(f["Timestamp"] >= start_ts) & (f["Timestamp"] <= end_ts)]
@@ -148,21 +149,23 @@ if "Select Store" in f.columns:
 
 st.divider()
 
-# ---------- Latest entries setup ----------
+# ---------- Latest entries ----------
 if "Timestamp" in f.columns:
     f = f.sort_values("Timestamp", ascending=False)
 
+# keep this ABOVE table
 top_n = st.slider("Show latest N entries", min_value=5, max_value=100, value=20, step=5)
+
 latest = f.head(top_n).copy()
 
-# Detect ratio column safely (supports both possible header names)
+# detect ratio column
 ratio_col = None
-for candidate in ["Staff on Floor Ratio", "% Staff on Floor %"]:
+for candidate in ["Staff on Floor Ratio", "% Staff on Floor %", "Staff on Floor %"]:
     if candidate in latest.columns:
         ratio_col = candidate
         break
 
-# Detect total logged-in column safely
+# detect total logged-in column
 total_logged_col = "Total Staff Logged In" if "Total Staff Logged In" in latest.columns else None
 
 show_cols = [
@@ -172,12 +175,12 @@ show_cols = [
         "Select Store",
         "No. of Staff Present",
         "No. of Customer Present",
+        ratio_col,
         "No. of Stock Boxes on Floor",
         "Staff Doing",
         "Comment",
         "File Photo",
         total_logged_col,
-        ratio_col,
     ] if c and c in latest.columns
 ]
 
@@ -203,13 +206,13 @@ def build_whatsapp_text(row):
     store = fmt_value(row.get("Select Store", ""))
     staff_no = fmt_value(row.get("No. of Staff Present", ""))
     customers = fmt_value(row.get("No. of Customer Present", ""))
+    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
     boxes = fmt_value(row.get("No. of Stock Boxes on Floor", ""))
     doing = fmt_value(row.get("Staff Doing", ""))
     comment = fmt_value(row.get("Comment", ""))
-    total_logged = fmt_value(row.get(total_logged_col, "")) if total_logged_col else ""
-    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
 
     parts = []
+
     if ts_str:
         parts.append(f"On {ts_str}")
     if store:
@@ -218,12 +221,10 @@ def build_whatsapp_text(row):
         parts.append(f"Staff: {staff_no}")
     if customers:
         parts.append(f"Customers: {customers}")
+    if ratio_val:
+        parts.append(f"*Staff on Floor Ratio: {ratio_val}*")
     if boxes:
         parts.append(f"Boxes: {boxes}")
-    if total_logged:
-        parts.append(f"Total Logged In: {total_logged}")
-    if ratio_val:
-        parts.append(f"Staff on Floor Ratio: {ratio_val}")
     if doing:
         parts.append(f"Doing: {doing}")
     if comment:
@@ -231,7 +232,7 @@ def build_whatsapp_text(row):
 
     return " | ".join(parts)
 
-def render_latest_table_with_copy(df_table, visible_cols, ratio_col_name=None):
+def render_latest_table_with_copy(df_table, visible_cols):
     if df_table.empty:
         st.info("No entries found for the selected filters.")
         return
@@ -272,11 +273,12 @@ def render_latest_table_with_copy(df_table, visible_cols, ratio_col_name=None):
                     cursor:pointer;
                     font-family:inherit;
                     font-size:13px;
+                    font-weight:600;
                 "
             >
                 Copy
             </button>
-            <div id="copied-msg-{i}" style="font-size:11px; color:{NAVY}; margin-top:4px;"></div>
+            <div id="copied-msg-{i}" style="font-size:11px; color:white; margin-top:4px;"></div>
         </td>
         """
         row_cells.append(copy_btn)
@@ -291,7 +293,6 @@ def render_latest_table_with_copy(df_table, visible_cols, ratio_col_name=None):
           border-collapse:collapse;
           font-family:Arial, sans-serif;
           font-size:14px;
-          color:{NAVY};
       ">
         <thead>
           <tr>
@@ -314,6 +315,7 @@ def render_latest_table_with_copy(df_table, visible_cols, ratio_col_name=None):
         padding: 10px 8px;
         border: 1px solid #2b3445;
         white-space: nowrap;
+        font-weight: 700;
       }}
       table tbody tr td {{
         padding: 10px 8px;
@@ -331,10 +333,6 @@ def render_latest_table_with_copy(df_table, visible_cols, ratio_col_name=None):
 
     components.html(table_html, height=min(650, 110 + (len(df_table) * 46)), scrolling=True)
 
-# ---------- Show Table View FIRST after title ----------
-with table_placeholder.container():
-    with st.expander("Show Table View", expanded=True):
-        render_latest_table_with_copy(latest[show_cols], show_cols, ratio_col)
-
-st.subheader("Latest Entries (with Copy for WhatsApp)")
-st.caption("Copy button is now available inside the same table view row.")
+# show table BELOW filters and BELOW latest N entries
+with st.expander("Show Table View", expanded=True):
+    render_latest_table_with_copy(latest[show_cols], show_cols)

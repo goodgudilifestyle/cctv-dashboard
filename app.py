@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import streamlit.components.v1 as components
+import html
+import json
 
 CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcso-sK4gPLoFOWaN4Pk4-tNIIE9x9GLZTnzx913Hu32qP16Yc6UgJLEJZlMxDhzZ1Ew0DZ47udzeQ/pub?gid=272834926&single=true&output=csv"
 
@@ -50,7 +52,13 @@ def load_data():
         df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors="coerce", dayfirst=True)
 
     # Numeric columns cleanup
-    for col in ["No. of Staff Present", "No. of Customer Present", "No. of Stock Boxes on Floor"]:
+    numeric_cols = [
+        "No. of Staff Present",
+        "No. of Customer Present",
+        "No. of Stock Boxes on Floor",
+        "Total Staff Logged In",
+    ]
+    for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
@@ -59,6 +67,9 @@ def load_data():
 df = load_data()
 
 st.title("CCTV Live Tracking — Dashboard")
+
+# Placeholder so "Show Table View" can appear immediately after title
+table_placeholder = st.empty()
 
 # ---------- Filters ----------
 c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.2, 1.6])
@@ -137,91 +148,193 @@ if "Select Store" in f.columns:
 
 st.divider()
 
-# ---------- Helper: Copy button (clipboard) ----------
-def copy_button(text_to_copy: str, button_label: str = "Copy"):
-    safe_text = (
-        text_to_copy
-        .replace("\\", "\\\\")
-        .replace("`", "\\`")
-        .replace("\n", " ")
-        .replace("\r", " ")
-    )
-
-    html = f"""
-    <div style="display:flex; gap:10px; align-items:center;">
-      <button
-        style="
-          border:1px solid {NAVY};
-          color:{NAVY};
-          background:white;
-          padding:6px 12px;
-          border-radius:10px;
-          cursor:pointer;
-          font-family:inherit;
-        "
-        onclick="navigator.clipboard.writeText(`{safe_text}`).then(()=>{{ 
-          const el = document.getElementById('copied-msg');
-          if (el) {{ el.innerText = 'Copied ✅'; setTimeout(()=>el.innerText='', 1200); }}
-        }});"
-      >
-        {button_label}
-      </button>
-      <span id="copied-msg" style="font-size:12px; color:{NAVY};"></span>
-    </div>
-    """
-    components.html(html, height=45)
-
-# ---------- Latest Entries with Copy per row ----------
-st.subheader("Latest Entries (with Copy for WhatsApp)")
-
-# Sort latest first
+# ---------- Latest entries setup ----------
 if "Timestamp" in f.columns:
     f = f.sort_values("Timestamp", ascending=False)
 
-show_cols = [c for c in [
-    "Timestamp","User","Select Store","No. of Staff Present","No. of Customer Present",
-    "No. of Stock Boxes on Floor","Staff Doing","Comment","File Photo"
-] if c in f.columns]
-
-# Show top N
 top_n = st.slider("Show latest N entries", min_value=5, max_value=100, value=20, step=5)
 latest = f.head(top_n).copy()
 
-# Render each row as a card + copy button
-for idx, row in latest.iterrows():
-    ts = row.get("Timestamp", "")
-    store = row.get("Select Store", "")
-    staff_no = row.get("No. of Staff Present", "")
-    doing = row.get("Staff Doing", "")
-    comment = row.get("Comment", "")
+# Detect ratio column safely (supports both possible header names)
+ratio_col = None
+for candidate in ["Staff on Floor Ratio", "% Staff on Floor %"]:
+    if candidate in latest.columns:
+        ratio_col = candidate
+        break
 
-    # Format timestamp nicely
-    if pd.notna(ts) and ts != "":
-        try:
-            ts_str = pd.to_datetime(ts).strftime("%d/%m/%Y %H:%M")
-        except Exception:
-            ts_str = str(ts)
-    else:
-        ts_str = ""
+# Detect total logged-in column safely
+total_logged_col = "Total Staff Logged In" if "Total Staff Logged In" in latest.columns else None
 
-    whatsapp_text = f"On {ts_str} in {store} | Staff: {staff_no} | Doing: {doing} | Comment: {comment}"
+show_cols = [
+    c for c in [
+        "Timestamp",
+        "User",
+        "Select Store",
+        "No. of Staff Present",
+        "No. of Customer Present",
+        "No. of Stock Boxes on Floor",
+        "Staff Doing",
+        "Comment",
+        "File Photo",
+        total_logged_col,
+        ratio_col,
+    ] if c and c in latest.columns
+]
 
-    with st.container(border=True):
-        cA, cB = st.columns([4, 1.2])
+def fmt_value(v):
+    if pd.isna(v):
+        return ""
+    if isinstance(v, float):
+        if v.is_integer():
+            return str(int(v))
+        return str(round(v, 2))
+    return str(v)
 
-        with cA:
-            # show key info
-            st.write(f"**{ts_str}**  •  **Store:** {store}  •  **Staff:** {staff_no}")
-            if "No. of Customer Present" in row:
-                st.write(f"**Customers:** {row.get('No. of Customer Present', '')}  •  **Boxes:** {row.get('No. of Stock Boxes on Floor', '')}")
-            if doing:
-                st.write(f"**Staff Doing:** {doing}")
-            if comment:
-                st.write(f"**Comment:** {comment}")
+def fmt_timestamp(v):
+    if pd.isna(v) or v == "":
+        return ""
+    try:
+        return pd.to_datetime(v).strftime("%d/%m/%Y %H:%M")
+    except Exception:
+        return str(v)
 
-        with cB:
-            copy_button(whatsapp_text, "Copy")
+def build_whatsapp_text(row):
+    ts_str = fmt_timestamp(row.get("Timestamp", ""))
+    store = fmt_value(row.get("Select Store", ""))
+    staff_no = fmt_value(row.get("No. of Staff Present", ""))
+    customers = fmt_value(row.get("No. of Customer Present", ""))
+    boxes = fmt_value(row.get("No. of Stock Boxes on Floor", ""))
+    doing = fmt_value(row.get("Staff Doing", ""))
+    comment = fmt_value(row.get("Comment", ""))
+    total_logged = fmt_value(row.get(total_logged_col, "")) if total_logged_col else ""
+    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
 
-# Also keep a raw table below (optional)
-with st.expander("Show table view"):
-    st.dataframe(latest[show_cols], use_container_width=True, hide_index=True)
+    parts = []
+    if ts_str:
+        parts.append(f"On {ts_str}")
+    if store:
+        parts.append(f"in {store}")
+    if staff_no:
+        parts.append(f"Staff: {staff_no}")
+    if customers:
+        parts.append(f"Customers: {customers}")
+    if boxes:
+        parts.append(f"Boxes: {boxes}")
+    if total_logged:
+        parts.append(f"Total Logged In: {total_logged}")
+    if ratio_val:
+        parts.append(f"Staff on Floor Ratio: {ratio_val}")
+    if doing:
+        parts.append(f"Doing: {doing}")
+    if comment:
+        parts.append(f"Comment: {comment}")
+
+    return " | ".join(parts)
+
+def render_latest_table_with_copy(df_table, visible_cols, ratio_col_name=None):
+    if df_table.empty:
+        st.info("No entries found for the selected filters.")
+        return
+
+    table_headers = visible_cols + ["Copy"]
+
+    html_rows = []
+    for i, (_, row) in enumerate(df_table.iterrows()):
+        row_cells = []
+
+        for col in visible_cols:
+            val = row.get(col, "")
+            if col == "Timestamp":
+                display_val = fmt_timestamp(val)
+            else:
+                display_val = fmt_value(val)
+            row_cells.append(f"<td>{html.escape(display_val)}</td>")
+
+        copy_text = build_whatsapp_text(row)
+        js_copy_text = json.dumps(copy_text)
+
+        copy_btn = f"""
+        <td style="text-align:center; white-space:nowrap;">
+            <button
+                onclick='navigator.clipboard.writeText({js_copy_text}).then(() => {{
+                    const msg = document.getElementById("copied-msg-{i}");
+                    if (msg) {{
+                        msg.innerText = "Copied ✅";
+                        setTimeout(() => msg.innerText = "", 1200);
+                    }}
+                }});'
+                style="
+                    border:1px solid {NAVY};
+                    color:{NAVY};
+                    background:white;
+                    padding:6px 12px;
+                    border-radius:8px;
+                    cursor:pointer;
+                    font-family:inherit;
+                    font-size:13px;
+                "
+            >
+                Copy
+            </button>
+            <div id="copied-msg-{i}" style="font-size:11px; color:{NAVY}; margin-top:4px;"></div>
+        </td>
+        """
+        row_cells.append(copy_btn)
+        html_rows.append("<tr>" + "".join(row_cells) + "</tr>")
+
+    header_html = "".join([f"<th>{html.escape(str(h))}</th>" for h in table_headers])
+
+    table_html = f"""
+    <div style="overflow-x:auto; width:100%;">
+      <table style="
+          width:100%;
+          border-collapse:collapse;
+          font-family:Arial, sans-serif;
+          font-size:14px;
+          color:{NAVY};
+      ">
+        <thead>
+          <tr>
+            {header_html}
+          </tr>
+        </thead>
+        <tbody>
+          {''.join(html_rows)}
+        </tbody>
+      </table>
+    </div>
+
+    <style>
+      table thead tr th {{
+        position: sticky;
+        top: 0;
+        background: #111827;
+        color: white;
+        text-align: left;
+        padding: 10px 8px;
+        border: 1px solid #2b3445;
+        white-space: nowrap;
+      }}
+      table tbody tr td {{
+        padding: 10px 8px;
+        border: 1px solid #2b3445;
+        background: #020817;
+        color: white;
+        vertical-align: top;
+        white-space: nowrap;
+      }}
+      table tbody tr:hover td {{
+        background: #0f172a;
+      }}
+    </style>
+    """
+
+    components.html(table_html, height=min(650, 110 + (len(df_table) * 46)), scrolling=True)
+
+# ---------- Show Table View FIRST after title ----------
+with table_placeholder.container():
+    with st.expander("Show Table View", expanded=True):
+        render_latest_table_with_copy(latest[show_cols], show_cols, ratio_col)
+
+st.subheader("Latest Entries (with Copy for WhatsApp)")
+st.caption("Copy button is now available inside the same table view row.")

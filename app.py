@@ -488,19 +488,19 @@ def build_whatsapp_text(row):
     if ratio_val:
         parts.append(f"*Staff Ratio: {ratio_val}*")
     if staff_not_on_floor != "":
-    try:
-        n = int(staff_not_on_floor)
+        try:
+            n = int(staff_not_on_floor)
 
-        if n <= 1:
-            icon = "🟢"
-        elif n <= 3:
-            icon = "🟡"
-        else:
-            icon = "🔴"
+            if n <= 1:
+                icon = "🟢"
+            elif n <= 3:
+                icon = "🟡"
+            else:
+                icon = "🔴"
 
-        parts.append(f"{icon} *Not on Floor: {n}*")
-    except:
-        parts.append(f"*Not on Floor: {staff_not_on_floor}*")
+            parts.append(f"{icon} *Not on Floor: {n}*")
+        except:
+            parts.append(f"*Not on Floor: {staff_not_on_floor}*")
 
 
     return " | ".join(parts)

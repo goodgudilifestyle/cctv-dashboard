@@ -247,27 +247,27 @@ st.markdown(
       }}
 
       /* Popover */
-      [data-testid="stPopover"] button {
+      [data-testid="stPopover"] button {{
           background: #ffffff !important;
           color: #0b1f3b !important;
           border: 1px solid #cbd5e1 !important;
           border-radius: 10px !important;
           font-weight: 500 !important;
-      }
+      }}
 
-      [data-testid="stPopover"] button:hover {
+      [data-testid="stPopover"] button:hover {{
           background: #f8fafc !important;
           color: #0b1f3b !important;
-      }
+      }}
 
       /* Checkbox labels inside popover */
       [data-testid="stCheckbox"] label,
       [data-testid="stCheckbox"] span,
-      [data-testid="stCheckbox"] div {
+      [data-testid="stCheckbox"] div {{
           color: #0b1f3b !important;
           -webkit-text-fill-color: #0b1f3b !important;
           opacity: 1 !important;
-      }
+      }}
 
       .gg-footer {{
         margin-top: 28px;

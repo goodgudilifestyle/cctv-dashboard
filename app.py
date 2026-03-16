@@ -105,42 +105,94 @@ st.markdown(
 
       /* -------- DROPDOWN POPUP FIX -------- */
       div[role="listbox"] {{
-          background: #020817 !important;
+          background: #ffffff !important;
           border: 1px solid #cbd5e1 !important;
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
       }}
 
       div[role="option"] {{
-          background: #020817 !important;
-          color: #ffffff !important;
+          background: #ffffff !important;
+          color: #0b1f3b !important;
+          opacity: 1 !important;
       }}
 
       div[role="option"] *,
       div[role="option"] span,
-      div[role="option"] div {{
-          color: #ffffff !important;
-          -webkit-text-fill-color: #ffffff !important;
-          fill: #ffffff !important;
+      div[role="option"] div,
+      div[role="option"] p,
+      div[role="option"] li {{
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
+          fill: #0b1f3b !important;
           opacity: 1 !important;
       }}
 
       div[role="option"]:hover {{
-          background: #1e293b !important;
+          background: #eef4fb !important;
+      }}
+
+      div[role="option"]:hover *,
+      div[role="option"]:hover span,
+      div[role="option"]:hover div {{
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
       }}
 
       div[role="option"][aria-selected="true"] {{
-          background: #334155 !important;
+          background: #e8f0fe !important;
+      }}
+
+      div[role="option"][aria-selected="true"] *,
+      div[role="option"][aria-selected="true"] span,
+      div[role="option"][aria-selected="true"] div {{
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
       }}
 
       div[data-baseweb="menu"] {{
-        background: #020817 !important;
+          background: #ffffff !important;
       }}
 
-      div[data-baseweb="menu"] * {{
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        opacity: 1 !important;
+      div[data-baseweb="menu"] *,
+      div[data-baseweb="menu"] span,
+      div[data-baseweb="menu"] div,
+      div[data-baseweb="menu"] li {{
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
+          opacity: 1 !important;
       }}
 
+      ul[role="listbox"] {{
+          background: #ffffff !important;
+      }}
+
+      ul[role="listbox"] * {{
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
+      }}
+            /* Extra fallback for portal-rendered dropdowns */
+      body div[role="listbox"],
+      body ul[role="listbox"] {{
+          background: #ffffff !important;
+      }}
+
+      body div[role="option"],
+      body li[role="option"] {{
+          background: #ffffff !important;
+          color: #0b1f3b !important;
+      }}
+
+      body div[role="option"] *,
+      body li[role="option"] *,
+      body div[role="option"] span,
+      body li[role="option"] span,
+      body div[role="option"] div,
+      body li[role="option"] div {{
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
+          opacity: 1 !important;
+      }}
+      
       /* -------- DATE INPUT -------- */
       div[data-testid="stDateInput"] > div {{
         background: #ffffff !important;

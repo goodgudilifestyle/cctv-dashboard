@@ -21,156 +21,224 @@ ACCENT = "#dd5656"
 st.markdown(
     f"""
     <style>
+      :root {{
+        --gg-bg: #ffffff;
+        --gg-text: #0b1f3b;
+        --gg-border: #cbd5e1;
+        --gg-soft: #f8fafc;
+        --gg-table: #020817;
+        --gg-table-2: #111827;
+        --gg-line: #2b3445;
+        --gg-white: #ffffff;
+      }}
+
       .stApp {{
-        background: {BG};
-        color: {TEXT};
+        background: var(--gg-bg);
+        color: var(--gg-text);
       }}
 
-      html, body, [class*="css"] {{
-        color: {TEXT};
+      body {{
+        color: var(--gg-text);
       }}
 
-      h1, h2, h3, h4, h5, h6, p, label, div, span {{
-        color: {TEXT};
+      /* Normal headings / labels only */
+      h1, h2, h3, h4, h5, h6,
+      p,
+      label,
+      .stMarkdown,
+      .stText,
+      .stCaption {{
+        color: var(--gg-text) !important;
       }}
 
-      section[data-testid="stSidebar"] {{
-        background: {BG};
-      }}
-
-      .stButton>button {{
-        border: 1px solid {TEXT};
-        color: {TEXT};
-        background: white;
+      /* Buttons */
+      .stButton > button {{
+        border: 1px solid var(--gg-text);
+        color: var(--gg-text);
+        background: #ffffff;
         border-radius: 10px;
         font-weight: 600;
       }}
 
-      .stButton>button:hover {{
-        border: 1px solid {TEXT};
-        color: {TEXT};
-        background: #f8fafc;
+      .stButton > button:hover {{
+        background: var(--gg-soft);
+        color: var(--gg-text);
+        border: 1px solid var(--gg-text);
       }}
 
-      div[data-testid="stDataFrame"] * {{
-        color: {TEXT} !important;
-      }}
-
-      /* ---------- MULTISELECT / SELECT ---------- */
+      /* -------- SELECT / MULTISELECT FIELD -------- */
       div[data-baseweb="select"] {{
-        color: {TEXT} !important;
+        color: var(--gg-text) !important;
       }}
 
       div[data-baseweb="select"] > div {{
         background: #ffffff !important;
-        color: {TEXT} !important;
-        border: 1px solid {BORDER} !important;
+        border: 1px solid var(--gg-border) !important;
+        color: var(--gg-text) !important;
       }}
 
       div[data-baseweb="select"] input {{
-        color: {TEXT} !important;
-        -webkit-text-fill-color: {TEXT} !important;
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
+        opacity: 1 !important;
       }}
 
       div[data-baseweb="select"] span {{
-        color: {TEXT} !important;
-        -webkit-text-fill-color: {TEXT} !important;
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
         opacity: 1 !important;
       }}
 
       div[data-baseweb="tag"] {{
-        background: #eef4fb !important;
-        color: {TEXT} !important;
+        background: #eaf2ff !important;
+        color: var(--gg-text) !important;
       }}
 
       div[data-baseweb="tag"] span {{
-        color: {TEXT} !important;
-        -webkit-text-fill-color: {TEXT} !important;
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
       }}
 
+      /* Placeholder text */
+      div[data-baseweb="select"] input::placeholder {{
+        color: #64748b !important;
+        -webkit-text-fill-color: #64748b !important;
+        opacity: 1 !important;
+      }}
+
+      /* -------- DROPDOWN POPUP -------- */
       div[role="listbox"] {{
         background: #ffffff !important;
-        border: 1px solid {BORDER} !important;
+        border: 1px solid var(--gg-border) !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
       }}
 
       div[role="option"] {{
         background: #ffffff !important;
-        color: {TEXT} !important;
+        color: var(--gg-text) !important;
       }}
 
       div[role="option"] * {{
-        color: {TEXT} !important;
-        -webkit-text-fill-color: {TEXT} !important;
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
+        opacity: 1 !important;
       }}
 
       div[role="option"]:hover {{
-        background: #f3f6fb !important;
-        color: {TEXT} !important;
+        background: #eef4fb !important;
       }}
 
-      /* ---------- DATE INPUT ---------- */
-      div[data-testid="stDateInput"] input {{
-        color: {TEXT} !important;
-        -webkit-text-fill-color: {TEXT} !important;
-        opacity: 1 !important;
-        background: #ffffff !important;
+      div[aria-selected="true"] {{
+        background: #e8f0fe !important;
+        color: var(--gg-text) !important;
       }}
 
+      /* -------- DATE INPUT -------- */
       div[data-testid="stDateInput"] > div {{
         background: #ffffff !important;
+        border: 1px solid var(--gg-border) !important;
+        border-radius: 10px !important;
       }}
 
-      div[data-testid="stDateInput"] * {{
-        color: {TEXT} !important;
+      div[data-testid="stDateInput"] input {{
+        background: #ffffff !important;
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
+        opacity: 1 !important;
       }}
 
-      /* ---------- GENERIC INPUTS ---------- */
+      div[data-testid="stDateInput"] svg {{
+        fill: var(--gg-text) !important;
+      }}
+
+      /* -------- CALENDAR POPUP -------- */
+      [data-baseweb="popover"] {{
+        background: #ffffff !important;
+        color: var(--gg-text) !important;
+      }}
+
+      [data-baseweb="popover"] * {{
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
+        opacity: 1 !important;
+      }}
+
+      [data-baseweb="calendar"] {{
+        background: #ffffff !important;
+      }}
+
+      [data-baseweb="calendar"] * {{
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
+      }}
+
+      /* Calendar day buttons */
+      [data-baseweb="calendar"] button {{
+        background: #ffffff !important;
+        color: var(--gg-text) !important;
+      }}
+
+      [data-baseweb="calendar"] button:hover {{
+        background: #eef4fb !important;
+        color: var(--gg-text) !important;
+      }}
+
+      /* Selected calendar day */
+      [data-baseweb="calendar"] [aria-selected="true"] {{
+        background: #dd5656 !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }}
+
+      /* Generic inputs */
       input, textarea {{
-        color: {TEXT} !important;
-        -webkit-text-fill-color: {TEXT} !important;
+        color: var(--gg-text) !important;
+        -webkit-text-fill-color: var(--gg-text) !important;
         opacity: 1 !important;
       }}
 
       /* Slider */
       .stSlider label, .stSlider span {{
-        color: {TEXT} !important;
+        color: var(--gg-text) !important;
         font-weight: 600 !important;
+      }}
+
+      /* Metrics */
+      [data-testid="stMetricLabel"] {{
+        color: var(--gg-text) !important;
+      }}
+
+      [data-testid="stMetricValue"] {{
+        color: var(--gg-text) !important;
       }}
 
       /* Expander */
       details {{
-        border: 1px solid {TABLE_LINE};
+        border: 1px solid var(--gg-line);
         border-radius: 10px;
         overflow: hidden;
-        background: {TABLE_BG_2};
+        background: var(--gg-table-2);
       }}
 
       details summary {{
-        background: {TABLE_BG_2} !important;
-        color: {WHITE} !important;
+        background: var(--gg-table-2) !important;
+        color: var(--gg-white) !important;
         font-weight: 700 !important;
         padding: 12px 16px !important;
       }}
 
       .streamlit-expanderHeader {{
-        color: {WHITE} !important;
+        color: var(--gg-white) !important;
         font-weight: 700 !important;
       }}
 
-      [data-testid="stMetricLabel"] {{
-        color: {TEXT} !important;
-      }}
-
-      [data-testid="stMetricValue"] {{
-        color: {TEXT} !important;
-      }}
-
+      /* Footer */
       .gg-footer {{
         margin-top: 28px;
         padding-top: 18px;
         border-top: 1px solid #e5e7eb;
         text-align: center;
-        color: #475569;
+        color: #475569 !important;
         font-size: 14px;
         font-weight: 600;
       }}
@@ -178,6 +246,8 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+
 # -------------------- DATA --------------------
 @st.cache_data(ttl=60)
 def load_data():

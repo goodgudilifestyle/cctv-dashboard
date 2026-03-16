@@ -104,39 +104,30 @@ st.markdown(
       }}
 
       /* -------- DROPDOWN POPUP -------- */
-      div[role="listbox"] {{
-        background: #ffffff !important;
-        border: 1px solid var(--gg-border) !important;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
-      }}
+      div[role="listbox"] {
+          background: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+      }
 
-      div[role="option"] {{
-        background: #ffffff !important;
-        color: #0b1f3b !important;
-        opacity: 1 !important;
-      }}
+      div[role="option"] {
+          background: #ffffff !important;
+          color: #0b1f3b !important;
+          opacity: 1 !important;
+      }
 
-      div[role="option"] * {{
-        color: #0b1f3b !important;
-        -webkit-text-fill-color: #0b1f3b !important;
-        fill: #0b1f3b !important;
-        opacity: 1 !important;
-      }}
+      div[role="option"] * {
+          color: #0b1f3b !important;
+          -webkit-text-fill-color: #0b1f3b !important;
+          opacity: 1 !important;
+      }
 
-      div[role="option"]:hover {{
-        background: #eef4fb !important;
-        color: #0b1f3b !important;
-      }}
+      div[role="option"]:hover {
+          background: #eef4fb !important;
+      }
 
-      div[role="option"]:hover * {{
-        color: #0b1f3b !important;
-        -webkit-text-fill-color: #0b1f3b !important;
-      }}
-
-      div[role="option"][aria-selected="true"] {{
-        background: #e8f0fe !important;
-        color: #0b1f3b !important;
-      }}
+      div[role="option"][aria-selected="true"] {
+          background: #e8f0fe !important;
+      }
 
       div[role="option"][aria-selected="true"] * {{
         color: #0b1f3b !important;
@@ -246,29 +237,6 @@ st.markdown(
         font-weight: 700 !important;
       }}
 
-      /* Popover */
-      [data-testid="stPopover"] button {{
-          background: #ffffff !important;
-          color: #0b1f3b !important;
-          border: 1px solid #cbd5e1 !important;
-          border-radius: 10px !important;
-          font-weight: 500 !important;
-      }}
-
-      [data-testid="stPopover"] button:hover {{
-          background: #f8fafc !important;
-          color: #0b1f3b !important;
-      }}
-
-      /* Checkbox labels inside popover */
-      [data-testid="stCheckbox"] label,
-      [data-testid="stCheckbox"] span,
-      [data-testid="stCheckbox"] div {{
-          color: #0b1f3b !important;
-          -webkit-text-fill-color: #0b1f3b !important;
-          opacity: 1 !important;
-      }}
-
       .gg-footer {{
         margin-top: 28px;
         padding-top: 18px;
@@ -338,63 +306,17 @@ def first_existing(columns_to_check, all_columns):
 st.title("Goodgudi CCTV Live Tracking — Dashboard")
 
 # -------------------- FILTERS --------------------
+# -------------------- FILTERS --------------------
 c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.0, 1.0])
 
 stores = sorted(df["Select Store"].dropna().astype(str).unique()) if "Select Store" in df.columns else []
 users = sorted(df["User"].dropna().astype(str).unique()) if "User" in df.columns else []
 
-# session-state defaults (blank by default)
-if "store_sel" not in st.session_state:
-    st.session_state.store_sel = []
-
-if "user_sel" not in st.session_state:
-    st.session_state.user_sel = []
-
 with c1:
-    st.markdown("**Store**")
-    with st.popover("Choose Store"):
-        if st.button("Clear Store", key="clear_store_btn", use_container_width=True):
-            st.session_state.store_sel = []
-
-        selected_stores = []
-        for s in stores:
-            checked = st.checkbox(
-                s,
-                value=(s in st.session_state.store_sel),
-                key=f"store_chk_{s}"
-            )
-            if checked:
-                selected_stores.append(s)
-
-        st.session_state.store_sel = selected_stores
-
-    if st.session_state.store_sel:
-        st.caption("Selected: " + ", ".join(st.session_state.store_sel))
-    else:
-        st.caption("Selected: All")
+    store_sel = st.multiselect("Store", stores, default=[])
 
 with c2:
-    st.markdown("**User**")
-    with st.popover("Choose User"):
-        if st.button("Clear User", key="clear_user_btn", use_container_width=True):
-            st.session_state.user_sel = []
-
-        selected_users = []
-        for u in users:
-            checked = st.checkbox(
-                u,
-                value=(u in st.session_state.user_sel),
-                key=f"user_chk_{u}"
-            )
-            if checked:
-                selected_users.append(u)
-
-        st.session_state.user_sel = selected_users
-
-    if st.session_state.user_sel:
-        st.caption("Selected: " + ", ".join(st.session_state.user_sel))
-    else:
-        st.caption("Selected: All")
+    user_sel = st.multiselect("User", users, default=[])
 
 min_date = df["Timestamp"].min().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
 max_date = df["Timestamp"].max().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
@@ -404,9 +326,6 @@ with c3:
 
 with c4:
     end_date = st.date_input("End date", value=max_date if max_date else None)
-
-store_sel = st.session_state.store_sel
-user_sel = st.session_state.user_sel
 f = df.copy()
 
 if store_sel and "Select Store" in f.columns:

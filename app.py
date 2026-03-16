@@ -104,31 +104,31 @@ st.markdown(
       }}
 
       /* -------- DROPDOWN POPUP -------- */
-      div[role="listbox"] {
+      div[role="listbox"] {{
           background: #ffffff !important;
           border: 1px solid #cbd5e1 !important;
-      }
+      }}
 
-      div[role="option"] {
+      div[role="option"] {{
           background: #ffffff !important;
           color: #0b1f3b !important;
           opacity: 1 !important;
-      }
+      }}
 
-      div[role="option"] * {
+      div[role="option"] * {{
           color: #0b1f3b !important;
           -webkit-text-fill-color: #0b1f3b !important;
           opacity: 1 !important;
-      }
+      }}
 
-      div[role="option"]:hover {
+      div[role="option"]:hover {{
           background: #eef4fb !important;
-      }
+      }}
 
-      div[role="option"][aria-selected="true"] {
+      div[role="option"][aria-selected="true"] {{
           background: #e8f0fe !important;
-      }
-
+      }}
+      
       div[role="option"][aria-selected="true"] * {{
         color: #0b1f3b !important;
         -webkit-text-fill-color: #0b1f3b !important;

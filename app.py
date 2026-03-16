@@ -189,7 +189,7 @@ def first_existing(columns_to_check, all_columns):
 
 
 # -------------------- TITLE --------------------
-st.title("CCTV Live Tracking — Dashboard")
+st.title("Goodgudi CCTV Live Tracking — Dashboard")
 
 # -------------------- FILTERS --------------------
 c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.0, 1.0])

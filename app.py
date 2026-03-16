@@ -41,7 +41,6 @@ st.markdown(
         color: var(--gg-text);
       }}
 
-      /* Normal headings / labels only */
       h1, h2, h3, h4, h5, h6,
       p,
       label,
@@ -51,7 +50,6 @@ st.markdown(
         color: var(--gg-text) !important;
       }}
 
-      /* Buttons */
       .stButton > button {{
         border: 1px solid var(--gg-text);
         color: var(--gg-text);
@@ -99,7 +97,6 @@ st.markdown(
         -webkit-text-fill-color: var(--gg-text) !important;
       }}
 
-      /* Placeholder text */
       div[data-baseweb="select"] input::placeholder {{
         color: #64748b !important;
         -webkit-text-fill-color: #64748b !important;
@@ -115,22 +112,45 @@ st.markdown(
 
       div[role="option"] {{
         background: #ffffff !important;
-        color: var(--gg-text) !important;
+        color: #0b1f3b !important;
+        opacity: 1 !important;
       }}
 
       div[role="option"] * {{
-        color: var(--gg-text) !important;
-        -webkit-text-fill-color: var(--gg-text) !important;
+        color: #0b1f3b !important;
+        -webkit-text-fill-color: #0b1f3b !important;
+        fill: #0b1f3b !important;
         opacity: 1 !important;
       }}
 
       div[role="option"]:hover {{
         background: #eef4fb !important;
+        color: #0b1f3b !important;
       }}
 
-      div[aria-selected="true"] {{
+      div[role="option"]:hover * {{
+        color: #0b1f3b !important;
+        -webkit-text-fill-color: #0b1f3b !important;
+      }}
+
+      div[role="option"][aria-selected="true"] {{
         background: #e8f0fe !important;
-        color: var(--gg-text) !important;
+        color: #0b1f3b !important;
+      }}
+
+      div[role="option"][aria-selected="true"] * {{
+        color: #0b1f3b !important;
+        -webkit-text-fill-color: #0b1f3b !important;
+      }}
+
+      div[data-baseweb="menu"] {{
+        background: #ffffff !important;
+      }}
+
+      div[data-baseweb="menu"] * {{
+        color: #0b1f3b !important;
+        -webkit-text-fill-color: #0b1f3b !important;
+        opacity: 1 !important;
       }}
 
       /* -------- DATE INPUT -------- */
@@ -172,7 +192,6 @@ st.markdown(
         -webkit-text-fill-color: var(--gg-text) !important;
       }}
 
-      /* Calendar day buttons */
       [data-baseweb="calendar"] button {{
         background: #ffffff !important;
         color: var(--gg-text) !important;
@@ -183,27 +202,23 @@ st.markdown(
         color: var(--gg-text) !important;
       }}
 
-      /* Selected calendar day */
       [data-baseweb="calendar"] [aria-selected="true"] {{
         background: #dd5656 !important;
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
       }}
 
-      /* Generic inputs */
       input, textarea {{
         color: var(--gg-text) !important;
         -webkit-text-fill-color: var(--gg-text) !important;
         opacity: 1 !important;
       }}
 
-      /* Slider */
       .stSlider label, .stSlider span {{
         color: var(--gg-text) !important;
         font-weight: 600 !important;
       }}
 
-      /* Metrics */
       [data-testid="stMetricLabel"] {{
         color: var(--gg-text) !important;
       }}
@@ -212,7 +227,6 @@ st.markdown(
         color: var(--gg-text) !important;
       }}
 
-      /* Expander */
       details {{
         border: 1px solid var(--gg-line);
         border-radius: 10px;
@@ -232,7 +246,6 @@ st.markdown(
         font-weight: 700 !important;
       }}
 
-      /* Footer */
       .gg-footer {{
         margin-top: 28px;
         padding-top: 18px;
@@ -246,7 +259,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 # -------------------- DATA --------------------
 @st.cache_data(ttl=60)

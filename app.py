@@ -491,9 +491,9 @@ def build_whatsapp_text(row):
         try:
             n = int(staff_not_on_floor)
 
-            if n <= 1:
+            if n <= 0:
                 icon = "🟢"
-            elif n <= 3:
+            elif n <= 2:
                 icon = "🟡"
             else:
                 icon = "🔴"

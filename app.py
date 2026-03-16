@@ -56,20 +56,40 @@ st.markdown(
         color: {TEXT} !important;
       }}
 
-      /* Inputs / dropdowns visible */
+      /* ---------- MULTISELECT / SELECT ---------- */
+      div[data-baseweb="select"] {{
+        color: {TEXT} !important;
+      }}
+
       div[data-baseweb="select"] > div {{
         background: #ffffff !important;
         color: {TEXT} !important;
         border: 1px solid {BORDER} !important;
       }}
 
+      div[data-baseweb="select"] input {{
+        color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
+      }}
+
       div[data-baseweb="select"] span {{
         color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
+        opacity: 1 !important;
+      }}
+
+      div[data-baseweb="tag"] {{
+        background: #eef4fb !important;
+        color: {TEXT} !important;
+      }}
+
+      div[data-baseweb="tag"] span {{
+        color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
       }}
 
       div[role="listbox"] {{
         background: #ffffff !important;
-        color: {TEXT} !important;
         border: 1px solid {BORDER} !important;
       }}
 
@@ -78,22 +98,46 @@ st.markdown(
         color: {TEXT} !important;
       }}
 
+      div[role="option"] * {{
+        color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
+      }}
+
       div[role="option"]:hover {{
         background: #f3f6fb !important;
         color: {TEXT} !important;
       }}
 
-      input, textarea {{
+      /* ---------- DATE INPUT ---------- */
+      div[data-testid="stDateInput"] input {{
+        color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
+        opacity: 1 !important;
+        background: #ffffff !important;
+      }}
+
+      div[data-testid="stDateInput"] > div {{
+        background: #ffffff !important;
+      }}
+
+      div[data-testid="stDateInput"] * {{
         color: {TEXT} !important;
       }}
 
-      /* Slider label / numbers */
+      /* ---------- GENERIC INPUTS ---------- */
+      input, textarea {{
+        color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
+        opacity: 1 !important;
+      }}
+
+      /* Slider */
       .stSlider label, .stSlider span {{
         color: {TEXT} !important;
         font-weight: 600 !important;
       }}
 
-      /* Expander styling */
+      /* Expander */
       details {{
         border: 1px solid {TABLE_LINE};
         border-radius: 10px;
@@ -113,7 +157,6 @@ st.markdown(
         font-weight: 700 !important;
       }}
 
-      /* Metric label visibility */
       [data-testid="stMetricLabel"] {{
         color: {TEXT} !important;
       }}
@@ -122,7 +165,6 @@ st.markdown(
         color: {TEXT} !important;
       }}
 
-      /* Footer */
       .gg-footer {{
         margin-top: 28px;
         padding-top: 18px;
@@ -136,7 +178,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 # -------------------- DATA --------------------
 @st.cache_data(ttl=60)
 def load_data():

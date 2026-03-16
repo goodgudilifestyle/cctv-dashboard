@@ -448,12 +448,12 @@ def build_whatsapp_text(row):
     store_val = fmt_value(row.get("Select Store", ""))
     staff_val = fmt_value(row.get("No. of Staff Present", ""))
     customer_val = fmt_value(row.get("No. of Customer Present", ""))
-    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
     boxes_val = fmt_value(row.get("No. of Stock Boxes on Floor", ""))
     doing_val = fmt_value(row.get("Staff Doing", ""))
     comment_val = fmt_value(row.get("Comment", ""))
     user_val = fmt_value(row.get("User", ""))
     total_logged_val = fmt_value(row.get("Total Staff Logged In", ""))
+    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
 
     # calculate staff not on floor
     staff_not_on_floor = ""
@@ -468,48 +468,27 @@ def build_whatsapp_text(row):
         staff_not_on_floor = ""
 
     if ts_val:
-        parts.append(f"On {ts_val}")
+        parts.append(f"{ts_val}")
     if store_val:
-        parts.append(f"in {store_val}")
+        parts.append(f"{store_val}")
     if staff_val:
-        parts.append(f"Staff: {staff_val}")
+        parts.append(f"Staff on Floor: {staff_val}")
     if customer_val:
         parts.append(f"Customers: {customer_val}")
-    if ratio_val:
-        parts.append(f"*Staff on Floor Ratio: {ratio_val}*")
     if boxes_val != "":
         parts.append(f"Boxes: {boxes_val}")
     if doing_val:
-        parts.append(f"Doing: {doing_val}")
+        parts.append(f"Activity: {doing_val}")
     if comment_val:
         parts.append(f"Comment: {comment_val}")
     if user_val:
-        parts.append(f"User: {user_val}")
+        parts.append(f"By: {user_val}")
     if total_logged_val:
-        parts.append(f"Total Staff Logged In: {total_logged_val}")
+        parts.append(f"Logged In: {total_logged_val}")
+    if ratio_val:
+        parts.append(f"*Staff Ratio: {ratio_val}*")
     if staff_not_on_floor != "":
-        parts.append(f"*Staff not on Floor: {staff_not_on_floor}*")
-
-    covered_cols = {
-        "Timestamp",
-        "Select Store",
-        "No. of Staff Present",
-        "No. of Customer Present",
-        "No. of Stock Boxes on Floor",
-        "Staff Doing",
-        "Comment",
-        "User",
-        "Total Staff Logged In",
-    }
-    if ratio_col:
-        covered_cols.add(ratio_col)
-
-    for col in row.index:
-        if col in covered_cols:
-            continue
-        val = fmt_value(row.get(col, ""))
-        if val != "":
-            parts.append(f"{col}: {val}")
+        parts.append(f"*Not on Floor: {staff_not_on_floor}*")
 
     return " | ".join(parts)
 

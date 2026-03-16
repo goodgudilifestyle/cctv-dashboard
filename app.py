@@ -8,54 +8,136 @@ CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcso-sK4gPLoFOWaN4Pk
 
 st.set_page_config(page_title="CCTV Live Tracking", layout="wide")
 
-NAVY = "#0b1f3b"
+# -------------------- THEME --------------------
+BG = "#ffffff"
+TEXT = "#0b1f3b"
+BORDER = "#d0d7e2"
+TABLE_BG = "#020817"
+TABLE_BG_2 = "#111827"
+TABLE_LINE = "#2b3445"
+WHITE = "#ffffff"
+ACCENT = "#dd5656"
 
 st.markdown(
     f"""
     <style>
       .stApp {{
-        background: white;
-        color: {NAVY};
+        background: {BG};
+        color: {TEXT};
       }}
 
-      h1, h2, h3, h4, h5, h6, p, div, span, label {{
-        color: {NAVY} !important;
+      html, body, [class*="css"] {{
+        color: {TEXT};
+      }}
+
+      h1, h2, h3, h4, h5, h6, p, label, div, span {{
+        color: {TEXT};
       }}
 
       section[data-testid="stSidebar"] {{
-        background: white;
+        background: {BG};
       }}
 
       .stButton>button {{
-        border: 1px solid {NAVY};
-        color: {NAVY};
+        border: 1px solid {TEXT};
+        color: {TEXT};
         background: white;
         border-radius: 10px;
+        font-weight: 600;
       }}
 
       .stButton>button:hover {{
-        opacity: 0.9;
+        border: 1px solid {TEXT};
+        color: {TEXT};
+        background: #f8fafc;
       }}
 
       div[data-testid="stDataFrame"] * {{
-        color: {NAVY} !important;
+        color: {TEXT} !important;
       }}
 
-      /* Expander title white + bold */
-      .streamlit-expanderHeader {{
-        color: white !important;
-        font-weight: 700 !important;
+      /* Inputs / dropdowns visible */
+      div[data-baseweb="select"] > div {{
+        background: #ffffff !important;
+        color: {TEXT} !important;
+        border: 1px solid {BORDER} !important;
+      }}
+
+      div[data-baseweb="select"] span {{
+        color: {TEXT} !important;
+      }}
+
+      div[role="listbox"] {{
+        background: #ffffff !important;
+        color: {TEXT} !important;
+        border: 1px solid {BORDER} !important;
+      }}
+
+      div[role="option"] {{
+        background: #ffffff !important;
+        color: {TEXT} !important;
+      }}
+
+      div[role="option"]:hover {{
+        background: #f3f6fb !important;
+        color: {TEXT} !important;
+      }}
+
+      input, textarea {{
+        color: {TEXT} !important;
+      }}
+
+      /* Slider label / numbers */
+      .stSlider label, .stSlider span {{
+        color: {TEXT} !important;
+        font-weight: 600 !important;
+      }}
+
+      /* Expander styling */
+      details {{
+        border: 1px solid {TABLE_LINE};
+        border-radius: 10px;
+        overflow: hidden;
+        background: {TABLE_BG_2};
       }}
 
       details summary {{
-        color: white !important;
+        background: {TABLE_BG_2} !important;
+        color: {WHITE} !important;
         font-weight: 700 !important;
+        padding: 12px 16px !important;
+      }}
+
+      .streamlit-expanderHeader {{
+        color: {WHITE} !important;
+        font-weight: 700 !important;
+      }}
+
+      /* Metric label visibility */
+      [data-testid="stMetricLabel"] {{
+        color: {TEXT} !important;
+      }}
+
+      [data-testid="stMetricValue"] {{
+        color: {TEXT} !important;
+      }}
+
+      /* Footer */
+      .gg-footer {{
+        margin-top: 28px;
+        padding-top: 18px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        color: #475569;
+        font-size: 14px;
+        font-weight: 600;
       }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
+# -------------------- DATA --------------------
 @st.cache_data(ttl=60)
 def load_data():
     df = pd.read_csv(CSV_URL)
@@ -69,48 +151,81 @@ def load_data():
         "No. of Stock Boxes on Floor",
         "Total Staff Logged In",
     ]
+
     for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     return df
 
+
 df = load_data()
 
+# -------------------- HELPERS --------------------
+def fmt_value(v):
+    if pd.isna(v):
+        return ""
+    if isinstance(v, float):
+        if v.is_integer():
+            return str(int(v))
+        return str(round(v, 2))
+    return str(v).strip()
+
+
+def fmt_timestamp(v):
+    if pd.isna(v) or v == "":
+        return ""
+    try:
+        return pd.to_datetime(v).strftime("%d/%m/%Y %H:%M")
+    except Exception:
+        return str(v)
+
+
+def first_existing(columns_to_check, all_columns):
+    for c in columns_to_check:
+        if c in all_columns:
+            return c
+    return None
+
+
+# -------------------- TITLE --------------------
 st.title("CCTV Live Tracking — Dashboard")
 
-# ---------- Filters ----------
-c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.2, 1.6])
+# -------------------- FILTERS --------------------
+c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.0, 1.0])
 
-stores = sorted(df["Select Store"].dropna().unique()) if "Select Store" in df.columns else []
-users = sorted(df["User"].dropna().unique()) if "User" in df.columns else []
+stores = sorted(df["Select Store"].dropna().astype(str).unique()) if "Select Store" in df.columns else []
+users = sorted(df["User"].dropna().astype(str).unique()) if "User" in df.columns else []
 
 with c1:
-    store_sel = st.multiselect("Store", stores, default=list(stores)[:1] if len(stores) else [])
+    store_sel = st.multiselect("Store", stores, default=list(stores)[:1] if stores else [])
 with c2:
     user_sel = st.multiselect("User", users, default=[])
+
+min_date = df["Timestamp"].min().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
+max_date = df["Timestamp"].max().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
+
 with c3:
-    min_date = df["Timestamp"].min().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
     start_date = st.date_input("Start date", value=min_date if min_date else None)
 with c4:
-    max_date = df["Timestamp"].max().date() if "Timestamp" in df.columns and df["Timestamp"].notna().any() else None
     end_date = st.date_input("End date", value=max_date if max_date else None)
 
 f = df.copy()
 
 if store_sel and "Select Store" in f.columns:
-    f = f[f["Select Store"].isin(store_sel)]
+    f = f[f["Select Store"].astype(str).isin(store_sel)]
 
 if user_sel and "User" in f.columns:
-    f = f[f["User"].isin(user_sel)]
+    f = f[f["User"].astype(str).isin(user_sel)]
 
 if "Timestamp" in f.columns and f["Timestamp"].notna().any() and start_date and end_date:
     start_ts = pd.Timestamp(start_date)
     end_ts = pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
     f = f[(f["Timestamp"] >= start_ts) & (f["Timestamp"] <= end_ts)]
 
-# ---------- KPIs ----------
+# -------------------- KPIs --------------------
 k1, k2, k3, k4 = st.columns(4)
+
 k1.metric("Total Checks", int(len(f)))
 
 if "No. of Customer Present" in f.columns:
@@ -122,115 +237,114 @@ if "No. of Stock Boxes on Floor" in f.columns:
 
 st.divider()
 
-# ---------- Staff Doing breakdown ----------
-if "Staff Doing" in f.columns:
-    st.subheader("Staff Doing — Breakdown")
-    doing = (
-        f["Staff Doing"]
-        .dropna()
-        .astype(str)
-        .str.split(",")
-        .explode()
-        .str.strip()
-    )
-    doing_counts = doing.value_counts().reset_index()
-    doing_counts.columns = ["Activity", "Count"]
-    st.dataframe(doing_counts, use_container_width=True, hide_index=True)
-
-st.divider()
-
-# ---------- Store-wise summary ----------
-if "Select Store" in f.columns:
-    st.subheader("Store-wise Summary (Averages)")
-    cols = [c for c in ["No. of Staff Present", "No. of Customer Present", "No. of Stock Boxes on Floor"] if c in f.columns]
-    if cols:
-        summary = f.groupby("Select Store")[cols].mean().round(2).reset_index()
-        st.dataframe(summary, use_container_width=True, hide_index=True)
-
-st.divider()
-
-# ---------- Latest entries ----------
+# -------------------- LATEST N --------------------
 if "Timestamp" in f.columns:
     f = f.sort_values("Timestamp", ascending=False)
 
-# keep this ABOVE table
-top_n = st.slider("Show latest N entries", min_value=5, max_value=100, value=20, step=5)
+top_n = st.slider("Show latest N entries", min_value=5, max_value=100, value=10, step=5)
 
 latest = f.head(top_n).copy()
 
-# detect ratio column
-ratio_col = None
-for candidate in ["Staff on Floor Ratio", "% Staff on Floor %", "Staff on Floor %"]:
-    if candidate in latest.columns:
-        ratio_col = candidate
-        break
+# dynamic column detection
+ratio_col = first_existing(
+    ["Staff on Floor Ratio", "% Staff on Floor %", "Staff on Floor %"],
+    latest.columns
+)
+total_logged_col = first_existing(
+    ["Total Staff Logged In"],
+    latest.columns
+)
 
-# detect total logged-in column
-total_logged_col = "Total Staff Logged In" if "Total Staff Logged In" in latest.columns else None
+# order for table
+preferred_order = [
+    "Timestamp",
+    "User",
+    "Select Store",
+    "No. of Staff Present",
+    "No. of Customer Present",
+    ratio_col,
+    "No. of Stock Boxes on Floor",
+    "Staff Doing",
+    "Comment",
+    "File Photo",
+    total_logged_col,
+]
 
-show_cols = [
-    c for c in [
+show_cols = [c for c in preferred_order if c and c in latest.columns]
+
+# any extra columns not in preferred list can still be included at end if needed
+extra_cols = [c for c in latest.columns if c not in show_cols]
+# keep extra cols excluded for display to avoid disturbing current table too much
+
+def build_whatsapp_text(row):
+    """
+    Build text dynamically:
+    - keeps main order
+    - includes Staff on Floor Ratio after Customers
+    - includes any other non-empty fields after main fields
+    - bold only Staff on Floor Ratio for WhatsApp
+    """
+    parts = []
+
+    ts_val = fmt_timestamp(row.get("Timestamp", ""))
+    store_val = fmt_value(row.get("Select Store", ""))
+    staff_val = fmt_value(row.get("No. of Staff Present", ""))
+    customer_val = fmt_value(row.get("No. of Customer Present", ""))
+    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
+    boxes_val = fmt_value(row.get("No. of Stock Boxes on Floor", ""))
+    doing_val = fmt_value(row.get("Staff Doing", ""))
+    comment_val = fmt_value(row.get("Comment", ""))
+
+    if ts_val:
+        parts.append(f"On {ts_val}")
+    if store_val:
+        parts.append(f"in {store_val}")
+    if staff_val:
+        parts.append(f"Staff: {staff_val}")
+    if customer_val:
+        parts.append(f"Customers: {customer_val}")
+    if ratio_val:
+        parts.append(f"*Staff on Floor Ratio: {ratio_val}*")
+    if boxes_val != "":
+        parts.append(f"Boxes: {boxes_val}")
+    if doing_val:
+        parts.append(f"Doing: {doing_val}")
+    if comment_val:
+        parts.append(f"Comment: {comment_val}")
+
+    # append any other non-empty row values not already covered
+    covered_cols = {
         "Timestamp",
-        "User",
         "Select Store",
         "No. of Staff Present",
         "No. of Customer Present",
-        ratio_col,
         "No. of Stock Boxes on Floor",
         "Staff Doing",
         "Comment",
-        "File Photo",
-        total_logged_col,
-    ] if c and c in latest.columns
-]
+    }
+    if ratio_col:
+        covered_cols.add(ratio_col)
 
-def fmt_value(v):
-    if pd.isna(v):
-        return ""
-    if isinstance(v, float):
-        if v.is_integer():
-            return str(int(v))
-        return str(round(v, 2))
-    return str(v)
+    friendly_names = {
+        "User": "User",
+        "File Photo": "File Photo",
+        "Total Staff Logged In": "Total Staff Logged In",
+        "No. of Staff Present": "Staff",
+        "No. of Customer Present": "Customers",
+        "No. of Stock Boxes on Floor": "Boxes",
+        "Select Store": "Store",
+    }
 
-def fmt_timestamp(v):
-    if pd.isna(v) or v == "":
-        return ""
-    try:
-        return pd.to_datetime(v).strftime("%d/%m/%Y %H:%M")
-    except Exception:
-        return str(v)
-
-def build_whatsapp_text(row):
-    ts_str = fmt_timestamp(row.get("Timestamp", ""))
-    store = fmt_value(row.get("Select Store", ""))
-    staff_no = fmt_value(row.get("No. of Staff Present", ""))
-    customers = fmt_value(row.get("No. of Customer Present", ""))
-    ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
-    boxes = fmt_value(row.get("No. of Stock Boxes on Floor", ""))
-    doing = fmt_value(row.get("Staff Doing", ""))
-    comment = fmt_value(row.get("Comment", ""))
-
-    parts = []
-
-    if ts_str:
-        parts.append(f"On {ts_str}")
-    if store:
-        parts.append(f"in {store}")
-    if staff_no:
-        parts.append(f"Staff: {staff_no}")
-    if customers:
-        parts.append(f"Customers: {customers}")
-    if ratio_val:
-        parts.append(f"*Staff on Floor Ratio: {ratio_val}*")
-    if boxes:
-        parts.append(f"Boxes: {boxes}")
-    if doing:
-        parts.append(f"Doing: {doing}")
-    if comment:
-        parts.append(f"Comment: {comment}")
+    for col in row.index:
+        if col in covered_cols:
+            continue
+        val = fmt_value(row.get(col, ""))
+        if val != "":
+            label = friendly_names.get(col, col)
+            parts.append(f"{label}: {val}")
 
     return " | ".join(parts)
+
 
 def render_latest_table_with_copy(df_table, visible_cols):
     if df_table.empty:
@@ -245,10 +359,7 @@ def render_latest_table_with_copy(df_table, visible_cols):
 
         for col in visible_cols:
             val = row.get(col, "")
-            if col == "Timestamp":
-                display_val = fmt_timestamp(val)
-            else:
-                display_val = fmt_value(val)
+            display_val = fmt_timestamp(val) if col == "Timestamp" else fmt_value(val)
             row_cells.append(f"<td>{html.escape(display_val)}</td>")
 
         copy_text = build_whatsapp_text(row)
@@ -265,15 +376,15 @@ def render_latest_table_with_copy(df_table, visible_cols):
                     }}
                 }});'
                 style="
-                    border:1px solid {NAVY};
-                    color:{NAVY};
+                    border:1px solid {TEXT};
+                    color:{TEXT};
                     background:white;
-                    padding:6px 12px;
-                    border-radius:8px;
+                    padding:6px 14px;
+                    border-radius:10px;
                     cursor:pointer;
                     font-family:inherit;
                     font-size:13px;
-                    font-weight:600;
+                    font-weight:700;
                 "
             >
                 Copy
@@ -286,10 +397,12 @@ def render_latest_table_with_copy(df_table, visible_cols):
 
     header_html = "".join([f"<th>{html.escape(str(h))}</th>" for h in table_headers])
 
+    # sticky header inside scrollable wrapper
     table_html = f"""
-    <div style="overflow-x:auto; width:100%;">
+    <div style="width:100%; overflow:auto; max-height:520px; border:1px solid {TABLE_LINE}; border-radius:10px;">
       <table style="
-          width:100%;
+          width:max-content;
+          min-width:100%;
           border-collapse:collapse;
           font-family:Arial, sans-serif;
           font-size:14px;
@@ -306,33 +419,74 @@ def render_latest_table_with_copy(df_table, visible_cols):
     </div>
 
     <style>
-      table thead tr th {{
+      thead th {{
         position: sticky;
         top: 0;
-        background: #111827;
-        color: white;
+        z-index: 10;
+        background: {TABLE_BG_2};
+        color: {WHITE};
         text-align: left;
-        padding: 10px 8px;
-        border: 1px solid #2b3445;
+        padding: 12px 10px;
+        border: 1px solid {TABLE_LINE};
         white-space: nowrap;
         font-weight: 700;
       }}
-      table tbody tr td {{
-        padding: 10px 8px;
-        border: 1px solid #2b3445;
-        background: #020817;
-        color: white;
+
+      tbody td {{
+        padding: 10px 10px;
+        border: 1px solid {TABLE_LINE};
+        background: {TABLE_BG};
+        color: {WHITE};
         vertical-align: top;
         white-space: nowrap;
       }}
-      table tbody tr:hover td {{
+
+      tbody tr:hover td {{
         background: #0f172a;
       }}
     </style>
     """
 
-    components.html(table_html, height=min(650, 110 + (len(df_table) * 46)), scrolling=True)
+    components.html(table_html, height=560, scrolling=False)
 
-# show table BELOW filters and BELOW latest N entries
+
+# -------------------- SHOW TABLE VIEW --------------------
 with st.expander("Show Table View", expanded=True):
     render_latest_table_with_copy(latest[show_cols], show_cols)
+
+st.divider()
+
+# -------------------- BREAKDOWN BELOW TABLE --------------------
+if "Staff Doing" in f.columns:
+    st.subheader("Staff Doing — Breakdown")
+    doing = (
+        f["Staff Doing"]
+        .dropna()
+        .astype(str)
+        .str.split(",")
+        .explode()
+        .str.strip()
+    )
+    doing_counts = doing.value_counts().reset_index()
+    doing_counts.columns = ["Activity", "Count"]
+    st.dataframe(doing_counts, use_container_width=True, hide_index=True)
+
+st.divider()
+
+# -------------------- STORE SUMMARY BELOW TABLE --------------------
+if "Select Store" in f.columns:
+    st.subheader("Store-wise Summary (Averages)")
+    cols = [c for c in ["No. of Staff Present", "No. of Customer Present", "No. of Stock Boxes on Floor"] if c in f.columns]
+    if cols:
+        summary = f.groupby("Select Store")[cols].mean().round(2).reset_index()
+        st.dataframe(summary, use_container_width=True, hide_index=True)
+
+# -------------------- FOOTER --------------------
+st.markdown(
+    """
+    <div class="gg-footer">
+      Dashboard Developed By Rohit Chougule @Goodgudi Retail Pvt. Ltd. Bangalore
+    </div>
+    """,
+    unsafe_allow_html=True,
+)

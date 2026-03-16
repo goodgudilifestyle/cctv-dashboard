@@ -105,12 +105,13 @@ st.markdown(
 
       /* -------- DROPDOWN POPUP -------- */
       div[role="listbox"] {{
-          background: #ffffff !important;
+          background: #020817 !important;
           border: 1px solid #cbd5e1 !important;
       }}
 
       div[role="option"] {{
-          background: #ffffff !important;
+          background: #020817
+          !important;
           color: #0b1f3b !important;
           opacity: 1 !important;
       }}
@@ -122,11 +123,11 @@ st.markdown(
       }}
 
       div[role="option"]:hover {{
-          background: #eef4fb !important;
+          background: #1e293b !important;
       }}
 
       div[role="option"][aria-selected="true"] {{
-          background: #e8f0fe !important;
+          background: #334155 !important;
       }}
       
       div[role="option"][aria-selected="true"] * {{
@@ -306,7 +307,7 @@ def first_existing(columns_to_check, all_columns):
 st.title("Goodgudi CCTV Live Tracking — Dashboard")
 
 # -------------------- FILTERS --------------------
-# -------------------- FILTERS --------------------
+
 c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.0, 1.0])
 
 stores = sorted(df["Select Store"].dropna().astype(str).unique()) if "Select Store" in df.columns else []

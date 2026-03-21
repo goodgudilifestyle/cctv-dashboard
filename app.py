@@ -498,9 +498,9 @@ def build_whatsapp_text(row):
             else:
                 icon = "🔴"
 
-            parts.append(f"{icon} *Staff not in Store: {n}*")
+            parts.append(f"{icon} *Staff outside the Store: {n}*")
         except:
-            parts.append(f"*Staff not in Store: {staff_not_on_floor}*")
+            parts.append(f"*Staff outside the Store: {staff_not_on_floor}*")
 
 
     return " | ".join(parts)

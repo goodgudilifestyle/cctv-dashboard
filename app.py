@@ -525,7 +525,7 @@ def build_whatsapp_text(row):
     if doing_val:
         activities = [x.strip() for x in doing_val.split(",") if x.strip()]
         if activities:
-            parts.append("✅Activities: " + ", ".join(activities))
+            parts.append("Activities: " + ", ".join(activities))
 
     if comment_val:
         parts.append(f"Comment: {comment_val}")

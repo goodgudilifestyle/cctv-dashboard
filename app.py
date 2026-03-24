@@ -455,6 +455,16 @@ def build_whatsapp_text(row):
     total_logged_val = fmt_value(row.get("Total Staff Logged In", ""))
     ratio_val = fmt_value(row.get(ratio_col, "")) if ratio_col else ""
 
+    # -------------------- EMOJI MAP --------------------
+    activity_emoji_map = {
+        "Attending to Customers": "🛍️",
+        "Browsing Mobile": "📱",
+        "Doing VM": "🪄",
+        "Doing Stock Count": "📦",
+        "Near Counter": "🧾",
+        "Not In Store": "🚶",
+    }
+
     # calculate staff not on floor
     staff_not_on_floor = ""
     try:
@@ -467,26 +477,46 @@ def build_whatsapp_text(row):
     except Exception:
         staff_not_on_floor = ""
 
+    # -------------------- BASIC FIELDS --------------------
     if ts_val:
-        parts.append(f"{ts_val}")
+        parts.append(f"🕒 {ts_val}")
+
     if store_val:
-        parts.append(f"{store_val}")
+        parts.append(f"🏬 {store_val}")
+
     if staff_val:
-        parts.append(f"Staff on Floor: {staff_val}")
+        parts.append(f"👥 Staff on Floor: {staff_val}")
+
     if customer_val:
-        parts.append(f"Customers: {customer_val}")
+        parts.append(f"🧍 Customers: {customer_val}")
+
     if boxes_val != "":
-        parts.append(f"Boxes: {boxes_val}")
+        parts.append(f"📦 Boxes: {boxes_val}")
+
+    # -------------------- ACTIVITY WITH RESPECTIVE EMOJIS --------------------
     if doing_val:
-        parts.append(f"Activity: {doing_val}")
+        activities = [x.strip() for x in doing_val.split(",") if x.strip()]
+        activity_parts = []
+
+        for activity in activities:
+            emoji = activity_emoji_map.get(activity, "•")
+            activity_parts.append(f"{emoji} {activity}")
+
+        if activity_parts:
+            parts.append("Activities: " + ", ".join(activity_parts))
+
     if comment_val:
-        parts.append(f"Comment: {comment_val}")
+        parts.append(f"📝 Comment: {comment_val}")
+
     if user_val:
-        parts.append(f"By: {user_val}")
+        parts.append(f"🙋 By: {user_val}")
+
     if total_logged_val:
-        parts.append(f"Logged In: {total_logged_val}")
+        parts.append(f"✅ Logged In: {total_logged_val}")
+
     if ratio_val:
-        parts.append(f"*Staff Ratio: {ratio_val}*")
+        parts.append(f"📊 *Staff Ratio: {ratio_val}*")
+
     if staff_not_on_floor != "":
         try:
             n = int(staff_not_on_floor)
@@ -499,9 +529,8 @@ def build_whatsapp_text(row):
                 icon = "🔴"
 
             parts.append(f"{icon} *Staff outside the Store: {n}*")
-        except:
-            parts.append(f"*Staff outside the Store: {staff_not_on_floor}*")
-
+        except Exception:
+            parts.append(f"🚶 *Staff outside the Store: {staff_not_on_floor}*")
 
     return " | ".join(parts)
 

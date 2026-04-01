@@ -545,7 +545,7 @@ def build_whatsapp_text(row):
 
             if n <= 0:
                 icon = "🟢"
-            elif n <= 2:
+            elif n <= 1:
                 icon = "🟡"
             else:
                 icon = "🔴"

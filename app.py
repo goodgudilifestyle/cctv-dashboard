@@ -303,23 +303,32 @@ st.markdown(
 # -------------------- DATA --------------------
 @st.cache_data(ttl=60)
 def load_data():
-    df = pd.read_csv(CSV_URL)
+    try:
+        df = pd.read_csv(CSV_URL)
 
-    if "Timestamp" in df.columns:
-        df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors="coerce", dayfirst=True)
+        if "Timestamp" in df.columns:
+            df["Timestamp"] = pd.to_datetime(
+                df["Timestamp"],
+                errors="coerce",
+                dayfirst=True
+            )
 
-    numeric_cols = [
-        "No. of Staff Present",
-        "No. of Customer Present",
-        "No. of Stock Boxes on Floor",
-        "Total Staff Logged In",
-    ]
+        numeric_cols = [
+            "No. of Staff Present",
+            "No. of Customer Present",
+            "No. of Stock Boxes on Floor",
+            "Total Staff Logged In",
+        ]
 
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+        for col in numeric_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    return df
+        return df
+
+    except Exception as e:
+        st.error(f"Error loading Google Sheet: {e}")
+        return pd.DataFrame()
 
 
 df = load_data()
